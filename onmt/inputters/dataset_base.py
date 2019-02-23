@@ -130,12 +130,6 @@ class Dataset(TorchtextDataset):
             ex = Example.fromdict(ex_dict, ex_fields)
             examples.append(ex)
 
-        # fields needs to have only keys that examples have as attrs
-        fields = []
-        for _, nf_list in ex_fields.items():
-            assert len(nf_list) == 1
-            fields.append(nf_list[0])
-
         super(Dataset, self).__init__(examples, fields, filter_pred)
 
     def __getattr__(self, attr):
