@@ -271,7 +271,7 @@ class Trainer(object):
                 tgt = batch.tgt
 
                 # F-prop through the model.
-                outputs, attns = valid_model(src, tgt, src_lengths)
+                outputs, attns = valid_model(src, tgt, batch.levels, src_lengths)
 
                 # Compute loss.
                 _, batch_stats = self.valid_loss(batch, outputs, attns)
@@ -315,7 +315,7 @@ class Trainer(object):
                 # 2. F-prop all but generator.
                 if self.grad_accum_count == 1:
                     self.optim.zero_grad()
-                outputs, attns = self.model(src, tgt, src_lengths, bptt=bptt)
+                outputs, attns = self.model(src, tgt, batch.levels, src_lengths, bptt=bptt)
                 bptt = True
 
                 # 3. Compute loss.
@@ -349,8 +349,8 @@ class Trainer(object):
                 # TO CHECK
                 # if dec_state is not None:
                 #    dec_state.detach()
-                if self.model.decoder.state is not None:
-                    self.model.decoder.detach_state()
+                if self.model.decoder().state is not None:
+                    self.model.decoder().detach_state()
 
         # in case of multi step gradient accumulation,
         # update only after accum batches
