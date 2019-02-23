@@ -144,7 +144,7 @@ class Translator(object):
         self.src_reader = src_reader
         self.tgt_reader = tgt_reader
         self.replace_unk = replace_unk
-        if self.replace_unk and not self.model.decoder.attentional:
+        if self.replace_unk and not self.model.decoder().attentional:
             raise ValueError(
                 "replace_unk requires an attentional decoder.")
         self.data_type = data_type
@@ -157,7 +157,7 @@ class Translator(object):
 
         self.global_scorer = global_scorer
         if self.global_scorer.has_cov_pen and \
-                not self.model.decoder.attentional:
+                not self.model.decoder().attentional:
             raise ValueError(
                 "Coverage penalty requires an attentional decoder.")
         self.out_file = out_file
@@ -250,7 +250,7 @@ class Translator(object):
             gs = self._score_target(
                 batch, memory_bank, src_lengths, src_vocabs,
                 batch.src_map if use_src_map else None)
-            self.model.decoder.init_state(src, memory_bank, enc_states)
+            self.model.decoder().init_state(src, memory_bank, enc_states)
         else:
             gs = [0] * batch_size
         return gs
@@ -417,7 +417,7 @@ class Translator(object):
 
         # Encoder forward.
         src, enc_states, memory_bank, src_lengths = self._run_encoder(batch)
-        self.model.decoder.init_state(src, memory_bank, enc_states)
+        self.model.decoder().init_state(src, memory_bank, enc_states)
 
         use_src_map = self.copy_attn
 
@@ -481,7 +481,7 @@ class Translator(object):
                 if src_map is not None:
                     src_map = src_map.index_select(1, select_indices)
 
-                self.model.decoder.map_state(
+                self.model.decoder().map_state(
                     lambda state, dim: state.index_select(dim, select_indices))
 
         results["scores"] = random_sampler.scores
@@ -489,8 +489,20 @@ class Translator(object):
         results["attention"] = random_sampler.attention
         return results
 
+    @staticmethod
+    def _get_level(levels):
+        levels_list = levels.tolist()
+        assert (len(set(levels_list)) == 1)  # assert all examples in the same level
+        return levels_list[0]
+
+    def set_model_level(self, batch):
+        level = self._get_level(batch.levels)
+        self.model.set_level(level)
+
     def translate_batch(self, batch, src_vocabs, attn_debug):
         """Translate a batch of sentences."""
+        self.set_model_level(batch)
+
         with torch.no_grad():
             if self.beam_size == 1:
                 return self._translate_random_sampling(
@@ -514,7 +526,7 @@ class Translator(object):
         src, src_lengths = batch.src if isinstance(batch.src, tuple) \
                            else (batch.src, None)
 
-        enc_states, memory_bank, src_lengths = self.model.encoder(
+        enc_states, memory_bank, src_lengths = self.model.encoder()(
             src, src_lengths)
         if src_lengths is None:
             assert not isinstance(memory_bank, tuple), \
@@ -545,7 +557,7 @@ class Translator(object):
         # and [src_len, batch, hidden] as memory_bank
         # in case of inference tgt_len = 1, batch = beam times batch_size
         # in case of Gold Scoring tgt_len = actual length, batch = 1 batch
-        dec_out, dec_attn = self.model.decoder(
+        dec_out, dec_attn = self.model.decoder()(
             decoder_in, memory_bank, memory_lengths=memory_lengths, step=step
         )
 
@@ -600,7 +612,7 @@ class Translator(object):
 
         # (1) Run the encoder on the src.
         src, enc_states, memory_bank, src_lengths = self._run_encoder(batch)
-        self.model.decoder.init_state(src, memory_bank, enc_states)
+        self.model.decoder().init_state(src, memory_bank, enc_states)
 
         results = {
             "predictions": None,
@@ -615,7 +627,7 @@ class Translator(object):
         # We use batch_size x beam_size
         src_map = (tile(batch.src_map, beam_size, dim=1)
                    if use_src_map else None)
-        self.model.decoder.map_state(
+        self.model.decoder().map_state(
             lambda state, dim: tile(state, beam_size, dim=dim))
 
         if isinstance(memory_bank, tuple):
@@ -679,7 +691,7 @@ class Translator(object):
                 if src_map is not None:
                     src_map = src_map.index_select(1, select_indices)
 
-            self.model.decoder.map_state(
+            self.model.decoder().map_state(
                 lambda state, dim: state.index_select(dim, select_indices))
 
         results["scores"] = beam.scores
@@ -711,7 +723,7 @@ class Translator(object):
 
         # (1) Run the encoder on the src.
         src, enc_states, memory_bank, src_lengths = self._run_encoder(batch)
-        self.model.decoder.init_state(src, memory_bank, enc_states)
+        self.model.decoder().init_state(src, memory_bank, enc_states)
 
         results = {
             "predictions": [],
@@ -726,7 +738,7 @@ class Translator(object):
         # We use now  batch_size x beam_size (same as fast mode)
         src_map = (tile(batch.src_map, beam_size, dim=1)
                    if use_src_map else None)
-        self.model.decoder.map_state(
+        self.model.decoder().map_state(
             lambda state, dim: tile(state, beam_size, dim=dim))
 
         if isinstance(memory_bank, tuple):
@@ -765,7 +777,7 @@ class Translator(object):
                     b.current_origin + j * beam_size)
             select_indices = torch.cat(select_indices_array)
 
-            self.model.decoder.map_state(
+            self.model.decoder().map_state(
                 lambda state, dim: state.index_select(dim, select_indices))
 
         # (4) Extract sentences from beam.
