@@ -68,6 +68,10 @@ def model_opts(parser):
 
     # Encoder-Decoder Options
     group = parser.add_argument_group('Model- Encoder-Decoder')
+    group.add('--model_architecture', '-model_architecture', default='encoder_multi_decoders',
+              choices=['encoder_decoders', 'encoder_multi_decoders'],
+              help="Type of model architecture to use."
+                   "Options are [encoder_decoders|encoder_multi_decoders].")
     group.add('--model_type', '-model_type', default='text',
               choices=['text', 'img', 'audio'],
               help="Type of source model to use. Allows "
@@ -317,9 +321,9 @@ def train_opts(parser):
               help='Path prefix to the ".train.pt" and '
                    '".valid.pt" file path from preprocess.py')
 
-    group.add('--save_model', '-save_model', default='model',
-              help="Model filename (the model will be saved as "
-                   "<save_model>_N.pt where N is the number "
+    group.add('--save_model', '-save_model', default='./trained_models',
+              help="Path for save models (the model will be saved as "
+                   "<save_model>/model_N.pt where N is the number "
                    "of steps")
 
     group.add('--save_checkpoint_steps', '-save_checkpoint_steps',
@@ -511,7 +515,7 @@ def train_opts(parser):
               help="Use tensorboardX for visualization during training. "
                    "Must have the library tensorboardX.")
     group.add("--tensorboard_log_dir", "-tensorboard_log_dir",
-              type=str, default="runs/onmt",
+              type=str, default="runs",
               help="Log directory for Tensorboard. "
                    "This is also the name of the run.")
 
