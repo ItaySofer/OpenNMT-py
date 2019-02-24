@@ -116,8 +116,11 @@ class ModelSaver(ModelSaverBase):
             'optim': self.optim.state_dict(),
         }
 
-        logger.info("Saving checkpoint %s_step_%d.pt" % (self.base_path, step))
-        checkpoint_path = '%s_step_%d.pt' % (self.base_path, step)
+        if not os.path.exists(self.base_path):
+            os.makedirs(self.base_path)
+
+        checkpoint_path = os.path.join(self.base_path, 'model_step_%d.pt' % step)
+        logger.info("Saving checkpoint %s" % checkpoint_path)
         torch.save(checkpoint, checkpoint_path)
         return checkpoint, checkpoint_path
 
