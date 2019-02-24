@@ -5,17 +5,21 @@
 """
 import codecs
 import glob
+import os
 import sys
 import gc
 import torch
 from functools import partial
 
+from onmt.inputters.multi_level_dataset import MultiLevelDataset
 from onmt.utils.logging import init_logger, logger
-from onmt.utils.misc import split_corpus
+from onmt.utils.misc import concate_level
 import onmt.inputters as inputters
 import onmt.opts as opts
 from onmt.utils.parse import ArgumentParser
 
+train_prefix = "train."
+valid_prefix = "valid."
 
 def check_existing_pt_files(opt):
     """ Check if there are existing .pt files to avoid overwriting them """
@@ -28,46 +32,81 @@ def check_existing_pt_files(opt):
             sys.exit(1)
 
 
+def read_lines(path):
+    with open(path, "rb") as f:
+        return f.readlines()
+
+
+def append_prefix(side_file_path, prefix):
+    head, tail = os.path.split(side_file_path)
+    tail = prefix + tail
+    return os.path.join(head, tail)
+
+
+def split_train_valid(opt):
+    train_percent = opt.train_valid_split
+    for level in opt.levels:
+        src_file_path = concate_level(opt.src_data, level)
+        tgt_file_path = concate_level(opt.tgt_data, level)
+        src_lines = read_lines(src_file_path)
+        tgt_lines = read_lines(tgt_file_path)
+        assert len(src_lines) == len(tgt_lines)
+
+        train_size = int(train_percent * len(src_lines))
+
+        for (side_file_path, lines) \
+                in zip([src_file_path, tgt_file_path],
+                       [src_lines, tgt_lines]):
+            train_path = append_prefix(side_file_path, train_prefix)
+            train_file = open(train_path, "wb")
+            train_file.writelines(lines[:train_size])
+            train_file.close()
+
+            valid_path = append_prefix(side_file_path, valid_prefix)
+            valid_file = open(valid_path, "wb")
+            valid_file.writelines(lines[train_size:])
+            valid_file.close()
+
+
 def build_save_dataset(corpus_type, fields, src_reader, tgt_reader, opt):
     assert corpus_type in ['train', 'valid']
 
     if corpus_type == 'train':
-        src = opt.train_src
-        tgt = opt.train_tgt
+        src = append_prefix(opt.src_data, train_prefix)
+        tgt = append_prefix(opt.tgt_data, train_prefix)
     else:
-        src = opt.valid_src
-        tgt = opt.valid_tgt
+        src = append_prefix(opt.src_data, valid_prefix)
+        tgt = append_prefix(opt.tgt_data, valid_prefix)
 
-    logger.info("Reading source and target files: %s %s." % (src, tgt))
-
-    src_shards = split_corpus(src, opt.shard_size)
-    tgt_shards = split_corpus(tgt, opt.shard_size)
-    shard_pairs = zip(src_shards, tgt_shards)
     dataset_paths = []
-    if (corpus_type == "train" or opt.filter_valid) and tgt is not None:
-        filter_pred = partial(
-            inputters.filter_example, use_src_len=opt.data_type == "text",
-            max_src_len=opt.src_seq_length, max_tgt_len=opt.tgt_seq_length)
-    else:
-        filter_pred = None
-    for i, (src_shard, tgt_shard) in enumerate(shard_pairs):
-        assert len(src_shard) == len(tgt_shard)
-        logger.info("Building shard %d." % i)
-        dataset = inputters.Dataset(
+    for level in opt.levels:
+        logger.info("Reading source and target files: %s %s. of level %s" % (src, tgt, level))
+
+        src_lines = read_lines(concate_level(src, level))
+        tgt_lines = read_lines(concate_level(tgt, level))
+        if (corpus_type == "train" or opt.filter_valid) and tgt is not None:
+            filter_pred = partial(
+                inputters.filter_example, use_src_len=opt.data_type == "text",
+                max_src_len=opt.src_seq_length, max_tgt_len=opt.tgt_seq_length)
+        else:
+            filter_pred = None
+
+        assert len(src_lines) == len(tgt_lines)
+        dataset = MultiLevelDataset(
             fields,
             readers=[src_reader, tgt_reader] if tgt_reader else [src_reader],
-            data=([("src", src_shard), ("tgt", tgt_shard)]
-                  if tgt_reader else [("src", src_shard)]),
+            data=([("src", src_lines), ("tgt", tgt_lines)] if tgt_reader else [("src", src_lines)]),
             dirs=[opt.src_dir, None] if tgt_reader else [opt.src_dir],
             sort_key=inputters.str2sortkey[opt.data_type],
+            level=level,
             filter_pred=filter_pred
         )
 
-        data_path = "{:s}.{:s}.{:d}.pt".format(opt.save_data, corpus_type, i)
+        data_path = "{:s}.{:s}.{:d}.pt".format(opt.save_data, corpus_type, level)
         dataset_paths.append(data_path)
 
-        logger.info(" * saving %sth %s data shard to %s."
-                    % (i, corpus_type, data_path))
+        logger.info(" * saving level %s %s data shard to %s."
+                    % (level, corpus_type, data_path))
 
         dataset.save(data_path)
 
@@ -110,9 +149,11 @@ def main(opt):
     init_logger(opt.log_file)
     logger.info("Extracting features...")
 
-    src_nfeats = count_features(opt.train_src) if opt.data_type == 'text' \
+    split_train_valid(opt)
+
+    src_nfeats = count_features(concate_level(opt.src_data, opt.levels[0])) if opt.data_type == 'text' \
         else 0
-    tgt_nfeats = count_features(opt.train_tgt)  # tgt always text so far
+    tgt_nfeats = count_features(concate_level(opt.tgt_data, opt.levels[0]))  # tgt always text so far
     logger.info(" * number of source features: %d." % src_nfeats)
     logger.info(" * number of target features: %d." % tgt_nfeats)
 
@@ -132,9 +173,8 @@ def main(opt):
     train_dataset_files = build_save_dataset(
         'train', fields, src_reader, tgt_reader, opt)
 
-    if opt.valid_src and opt.valid_tgt:
-        logger.info("Building & saving validation data...")
-        build_save_dataset('valid', fields, src_reader, tgt_reader, opt)
+    logger.info("Building & saving validation data...")
+    build_save_dataset('valid', fields, src_reader, tgt_reader, opt)
 
     logger.info("Building & saving vocabulary...")
     build_save_vocab(train_dataset_files, fields, opt)
@@ -144,6 +184,7 @@ def _get_parser():
     parser = ArgumentParser(description='preprocess.py')
 
     opts.config_opts(parser)
+    opts.general_opts(parser)
     opts.preprocess_opts(parser)
     return parser
 

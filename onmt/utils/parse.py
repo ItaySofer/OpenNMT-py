@@ -5,6 +5,7 @@ import torch
 
 import onmt.opts as opts
 from onmt.utils.logging import logger
+from onmt.utils.misc import concate_level
 
 
 class ArgumentParser(cfargparse.ArgumentParser):
@@ -105,11 +106,9 @@ class ArgumentParser(cfargparse.ArgumentParser):
             "-shuffle is not implemented. Please shuffle \
             your data before pre-processing."
 
-        assert os.path.isfile(opt.train_src) \
-            and os.path.isfile(opt.train_tgt), \
-            "Please check path of your train src and tgt files!"
+        for level in opt.levels:
+            assert os.path.isfile(concate_level(opt.src_data, level)) \
+                and os.path.isfile(concate_level(opt.tgt_data, level)), \
+                "Please check path of your src and tgt files!"
 
-        assert not opt.valid_src or os.path.isfile(opt.valid_src), \
-            "Please check path of your valid src file!"
-        assert not opt.valid_tgt or os.path.isfile(opt.valid_tgt), \
-            "Please check path of your valid tgt file!"
+
