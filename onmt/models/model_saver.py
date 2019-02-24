@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 import torch
 import torch.nn as nn
 
@@ -9,7 +10,7 @@ from copy import deepcopy
 
 
 def build_model_saver(model_opt, opt, model, fields, optim):
-    model_saver = ModelSaver(opt.save_model,
+    model_saver = ModelSaver(os.path.join(opt.save_model, datetime.now().strftime("%b-%d_%H-%M-%S")),
                              model,
                              model_opt,
                              fields,

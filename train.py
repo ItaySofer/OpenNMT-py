@@ -97,6 +97,7 @@ def _get_parser():
     parser = ArgumentParser(description='train.py')
 
     opts.config_opts(parser)
+    opts.general_opts(parser)
     opts.model_opts(parser)
     opts.train_opts(parser)
     return parser
