@@ -78,6 +78,10 @@ def build_decoder(opt, embeddings):
     return str2dec[dec_type].from_opt(opt, embeddings)
 
 
+def build_decoders(model_opt, tgt_emb):
+    return nn.ModuleDict([[str(level), build_decoder(model_opt, tgt_emb)] for level in model_opt.levels])
+
+
 def load_test_model(opt, model_path=None):
     if model_path is None:
         model_path = opt.models[0]
@@ -144,16 +148,13 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None, gpu_id=None):
 
         tgt_emb.word_lut.weight = src_emb.word_lut.weight
 
-    decoder = build_decoder(model_opt, tgt_emb)
+    if model_opt.model_architecture == "encoder_decoder":
+        decoder = build_decoder(model_opt, tgt_emb)
+        model = onmt.models.NMTModel(encoder, decoder)
+    elif model_opt.model_architecture == "encoder_multi_decoders":
+        decoders = build_decoders(model_opt, tgt_emb)
+        model = onmt.models.MultiDecodersNMTModel(encoder, decoders)
 
-    # Build NMTModel(= encoder + decoder).
-    if gpu and gpu_id is not None:
-        device = torch.device("cuda", gpu_id)
-    elif gpu and not gpu_id:
-        device = torch.device("cuda")
-    elif not gpu:
-        device = torch.device("cpu")
-    model = onmt.models.NMTModel(encoder, decoder)
 
     # Build Generator.
     if not model_opt.copy_attn:
@@ -213,6 +214,13 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None, gpu_id=None):
                 model_opt.pre_word_vecs_dec)
 
     model.generator = generator
+
+    if gpu and gpu_id is not None:
+        device = torch.device("cuda", gpu_id)
+    elif gpu and not gpu_id:
+        device = torch.device("cuda")
+    elif not gpu:
+        device = torch.device("cpu")
     model.to(device)
     if model_opt.model_dtype == 'fp16':
         model.half()
