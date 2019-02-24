@@ -13,6 +13,15 @@ def config_opts(parser):
                help='config file save path')
 
 
+def general_opts(parser):
+    group = parser.add_argument_group('general')
+    group.add_argument('-levels', '--levels',
+                       type=int,
+                       nargs='+',
+                       required=True,
+                       help='list of simplification levels')
+
+
 def model_opts(parser):
     """
     These options are passed to the construction of the model.
@@ -189,14 +198,16 @@ def preprocess_opts(parser):
               help="Type of the source input. "
                    "Options are [text|img|audio].")
 
-    group.add('--train_src', '-train_src', required=True,
-              help="Path to the training source data")
-    group.add('--train_tgt', '-train_tgt', required=True,
-              help="Path to the training target data")
-    group.add('--valid_src', '-valid_src',
-              help="Path to the validation source data")
-    group.add('--valid_tgt', '-valid_tgt',
-              help="Path to the validation target data")
+    group.add_argument('-src_data', '--src_data',
+                       required=True,
+                       help='Source data file path (without .#level suffix)')
+    group.add_argument('-tgt_data', '--tgt_data',
+                       required=True,
+                       help='Target data file path (without .#level suffix)')
+    group.add_argument('-train_valid_split', '--train_valid_split',
+                       default=0.7,
+                       type=float,
+                       help='Percentage of split between train / validation data ~ [0.0, 1.0]')
 
     group.add('--src_dir', '-src_dir', default="",
               help="Source directory for image or audio files.")

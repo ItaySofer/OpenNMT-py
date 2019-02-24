@@ -119,6 +119,9 @@ def get_fields(
     indices = Field(use_vocab=False, dtype=torch.long, sequential=False)
     fields["indices"] = indices
 
+    levels = Field(use_vocab=False, dtype=torch.long, sequential=False)
+    fields["levels"] = levels
+
     if dynamic_dict:
         src_map = Field(
             use_vocab=False, dtype=torch.float,

@@ -124,3 +124,7 @@ def relative_matmul(x, z, transpose):
 def fn_args(fun):
     """Returns the list of function arguments name."""
     return inspect.getfullargspec(fun).args
+
+
+def concate_level(path, level):
+    return path + '.' + str(level)
