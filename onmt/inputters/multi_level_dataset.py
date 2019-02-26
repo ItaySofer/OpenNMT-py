@@ -1,7 +1,7 @@
-import onmt.inputters
+from onmt import inputters
 
 
-class MultiLevelDataset(onmt.inputters.Dataset):
+class MultiLevelDataset(inputters.Dataset):
     """
     A single language tweeter dataset.
     """
