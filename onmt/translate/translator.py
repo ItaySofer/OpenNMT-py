@@ -5,6 +5,7 @@ import codecs
 import os
 import math
 import time
+from datetime import datetime
 from itertools import count
 
 import torch
@@ -21,7 +22,11 @@ from onmt.modules.copy_generator import collapse_copy_scores
 
 def build_translator(opt, report_score=True, logger=None, out_file=None):
     if out_file is None:
-        out_file = codecs.open(opt.output, 'w+', 'utf-8')
+        output_path = os.path.join(opt.output, datetime.now().strftime("%b-%d_%H-%M-%S"))
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+        file_name = 'pred.txt'
+        out_file = codecs.open(os.path.join(output_path, file_name), 'w+', 'utf-8')
 
     load_test_model = onmt.decoders.ensemble.load_test_model \
         if len(opt.models) > 1 else onmt.model_builder.load_test_model
@@ -259,6 +264,7 @@ class Translator(object):
             self,
             src,
             tgt=None,
+            level=0,
             src_dir=None,
             batch_size=None,
             attn_debug=False):
@@ -270,6 +276,7 @@ class Translator(object):
             src_dir: See :func:`self.src_reader.read()` (only relevant
                 for certain types of data).
             batch_size (int): size of examples per mini-batch
+            level: target translation level
             attn_debug (bool): enables the attention logging
 
         Returns:
@@ -283,13 +290,14 @@ class Translator(object):
         if batch_size is None:
             raise ValueError("batch_size must be set")
 
-        data = inputters.Dataset(
+        data = inputters.MultiLevelDataset(
             self.fields,
             readers=([self.src_reader, self.tgt_reader]
                      if tgt else [self.src_reader]),
             data=[("src", src), ("tgt", tgt)] if tgt else [("src", src)],
             dirs=[src_dir, None] if tgt else [src_dir],
             sort_key=inputters.str2sortkey[self.data_type],
+            level=level,
             filter_pred=self._filter_pred
         )
 
