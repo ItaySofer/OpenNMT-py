@@ -21,6 +21,7 @@ from onmt.utils.parse import ArgumentParser
 train_prefix = "train."
 valid_prefix = "valid."
 
+
 def check_existing_pt_files(opt):
     """ Check if there are existing .pt files to avoid overwriting them """
     pattern = opt.save_data + '.{}*.pt'
@@ -30,6 +31,7 @@ def check_existing_pt_files(opt):
             sys.stderr.write("Please backup existing pt files: %s, "
                              "to avoid overwriting them!\n" % path)
             sys.exit(1)
+
 
 def append_prefix(side_file_path, prefix):
     head, tail = os.path.split(side_file_path)
