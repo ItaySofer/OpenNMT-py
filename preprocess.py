@@ -40,8 +40,8 @@ def append_prefix(side_file_path, prefix):
 def split_train_valid(opt):
     train_percent = opt.train_valid_split
     for level in opt.levels:
-        src_file_path = concate_level(opt.src_data, level)
-        tgt_file_path = concate_level(opt.tgt_data, level)
+        src_file_path = concate_level(opt.src, level)
+        tgt_file_path = concate_level(opt.tgt, level)
         src_lines = read_lines(src_file_path)
         tgt_lines = read_lines(tgt_file_path)
         assert len(src_lines) == len(tgt_lines)
@@ -66,11 +66,11 @@ def build_save_dataset(corpus_type, fields, src_reader, tgt_reader, opt):
     assert corpus_type in ['train', 'valid']
 
     if corpus_type == 'train':
-        src = append_prefix(opt.src_data, train_prefix)
-        tgt = append_prefix(opt.tgt_data, train_prefix)
+        src = append_prefix(opt.src, train_prefix)
+        tgt = append_prefix(opt.tgt, train_prefix)
     else:
-        src = append_prefix(opt.src_data, valid_prefix)
-        tgt = append_prefix(opt.tgt_data, valid_prefix)
+        src = append_prefix(opt.src, valid_prefix)
+        tgt = append_prefix(opt.tgt, valid_prefix)
 
     dataset_paths = []
     for level in opt.levels:
@@ -145,9 +145,9 @@ def main(opt):
 
     split_train_valid(opt)
 
-    src_nfeats = count_features(concate_level(opt.src_data, opt.levels[0])) if opt.data_type == 'text' \
+    src_nfeats = count_features(concate_level(opt.src, opt.levels[0])) if opt.data_type == 'text' \
         else 0
-    tgt_nfeats = count_features(concate_level(opt.tgt_data, opt.levels[0]))  # tgt always text so far
+    tgt_nfeats = count_features(concate_level(opt.tgt, opt.levels[0]))  # tgt always text so far
     logger.info(" * number of source features: %d." % src_nfeats)
     logger.info(" * number of target features: %d." % tgt_nfeats)
 
