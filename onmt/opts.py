@@ -321,7 +321,7 @@ def train_opts(parser):
               help='Path prefix to the ".train.pt" and '
                    '".valid.pt" file path from preprocess.py')
 
-    group.add('--save_model', '-save_model', default='./trained_models',
+    group.add('--save_model', '-save_model', default='./output/trained_models',
               help="Path for save models (the model will be saved as "
                    "<save_model>/model_N.pt where N is the number "
                    "of steps")
@@ -515,7 +515,7 @@ def train_opts(parser):
               help="Use tensorboardX for visualization during training. "
                    "Must have the library tensorboardX.")
     group.add("--tensorboard_log_dir", "-tensorboard_log_dir",
-              type=str, default="runs",
+              type=str, default="./output/runs",
               help="Log directory for Tensorboard. "
                    "This is also the name of the run.")
 
@@ -571,7 +571,7 @@ def translate_opts(parser):
                    "shard_size=0 means no segmentation "
                    "shard_size>0 means segment dataset into multiple shards, "
                    "each shard has shard_size samples")
-    group.add('--output', '-output', default='pred.txt',
+    group.add('--output', '-output', default='./output/translations',
               help="Path to output the predictions (each line will "
                    "be the decoded sequence")
     group.add('--report_bleu', '-report_bleu', action='store_true',
