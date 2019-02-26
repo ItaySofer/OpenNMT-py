@@ -19,13 +19,13 @@ def main(opt):
     for level in opt.levels:
         logger.info("Reading source and target files: %s %s. of level %s" % (opt.src, opt.tgt, level))
 
-        src_lines = read_lines(concate_level(opt.src, level))
-        tgt_lines = read_lines(concate_level(opt.tgt, level))
+        src_path = concate_level(opt.src, level)
+        tgt_path = concate_level(opt.tgt, level)
 
         logger.info("Translating level %d." % level)
         translator.translate(
-            src=src_lines,
-            tgt=tgt_lines,
+            src=src_path,
+            tgt=tgt_path,
             level=level,
             src_dir=opt.src_dir,
             batch_size=opt.batch_size,
