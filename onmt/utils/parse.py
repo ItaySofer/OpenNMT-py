@@ -107,8 +107,8 @@ class ArgumentParser(cfargparse.ArgumentParser):
             your data before pre-processing."
 
         for level in opt.levels:
-            assert os.path.isfile(concate_level(opt.src_data, level)) \
-                and os.path.isfile(concate_level(opt.tgt_data, level)), \
+            assert os.path.isfile(concate_level(opt.src, level)) \
+                and os.path.isfile(concate_level(opt.tgt, level)), \
                 "Please check path of your src and tgt files!"
 
 
