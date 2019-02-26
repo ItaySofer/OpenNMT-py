@@ -6,6 +6,11 @@ import inspect
 from itertools import islice
 
 
+def read_lines(path):
+    with open(path, "rb") as f:
+        return f.readlines()
+
+
 def split_corpus(path, shard_size):
     with open(path, "rb") as f:
         if shard_size <= 0:
