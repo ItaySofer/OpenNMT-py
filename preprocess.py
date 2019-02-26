@@ -13,7 +13,7 @@ from functools import partial
 
 from onmt.inputters.multi_level_dataset import MultiLevelDataset
 from onmt.utils.logging import init_logger, logger
-from onmt.utils.misc import concate_level
+from onmt.utils.misc import concate_level, read_lines
 import onmt.inputters as inputters
 import onmt.opts as opts
 from onmt.utils.parse import ArgumentParser
@@ -30,12 +30,6 @@ def check_existing_pt_files(opt):
             sys.stderr.write("Please backup existing pt files: %s, "
                              "to avoid overwriting them!\n" % path)
             sys.exit(1)
-
-
-def read_lines(path):
-    with open(path, "rb") as f:
-        return f.readlines()
-
 
 def append_prefix(side_file_path, prefix):
     head, tail = os.path.split(side_file_path)
