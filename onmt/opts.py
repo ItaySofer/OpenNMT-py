@@ -202,10 +202,10 @@ def preprocess_opts(parser):
               help="Type of the source input. "
                    "Options are [text|img|audio].")
 
-    group.add_argument('-src_data', '--src_data',
+    group.add_argument('-src', '--src',
                        required=True,
                        help='Source data file path (without .#level suffix)')
-    group.add_argument('-tgt_data', '--tgt_data',
+    group.add_argument('-tgt', '--tgt',
                        required=True,
                        help='Target data file path (without .#level suffix)')
     group.add_argument('-train_valid_split', '--train_valid_split',
