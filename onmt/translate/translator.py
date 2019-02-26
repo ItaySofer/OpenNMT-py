@@ -110,6 +110,7 @@ class Translator(object):
             verbose=False,
             report_bleu=False,
             report_rouge=False,
+            report_sari=False,
             report_time=False,
             copy_attn=False,
             global_scorer=None,
@@ -156,6 +157,7 @@ class Translator(object):
         self.verbose = verbose
         self.report_bleu = report_bleu
         self.report_rouge = report_rouge
+        self.report_sari = report_sari
         self.report_time = report_time
 
         self.copy_attn = copy_attn
@@ -235,6 +237,7 @@ class Translator(object):
             verbose=opt.verbose,
             report_bleu=opt.report_bleu,
             report_rouge=opt.report_rouge,
+            report_sari=opt.report_sari,
             report_time=opt.report_time,
             copy_attn=model_opt.copy_attn,
             global_scorer=global_scorer,
@@ -389,6 +392,9 @@ class Translator(object):
                     self._log(msg)
                 if self.report_rouge:
                     msg = self._report_rouge(tgt)
+                    self._log(msg)
+                if self.report_sari:
+                    msg = self._report_sari(src, tgt)
                     self._log(msg)
 
         if self.report_time:
@@ -835,7 +841,7 @@ class Translator(object):
         print()
 
         res = subprocess.check_output(
-            "perl %s/tools/multi-bleu.perl %s" % (base_dir, tgt_path),
+            "perl %s/tools/multi-bleu.perl %s" % (base_dir, os.path.abspath(tgt_path)),
             stdin=self.out_file, shell=True
         ).decode("utf-8")
 
@@ -849,4 +855,19 @@ class Translator(object):
             "python %s/tools/test_rouge.py -r %s -c STDIN" % (path, tgt_path),
             shell=True, stdin=self.out_file
         ).decode("utf-8").strip()
+        return msg
+
+    def _report_sari(self, src_path, tgt_path):
+        import subprocess
+        base_dir = os.path.abspath(__file__ + "/../../..")
+        # Rollback pointer to the beginning.
+        self.out_file.seek(0)
+        print()
+
+        res = subprocess.check_output(
+            "python %s/tools/sari.py %s %s" % (base_dir, os.path.abspath(src_path), os.path.abspath(tgt_path)),
+            stdin=self.out_file, shell=True
+        ).decode("utf-8")
+
+        msg = ">> " + res.strip()
         return msg
