@@ -1,5 +1,7 @@
 """ Report manager utility """
 from __future__ import print_function
+
+import os
 import time
 from datetime import datetime
 
@@ -14,7 +16,7 @@ def build_report_manager(opt):
         tensorboard_log_dir = opt.tensorboard_log_dir
 
         if not opt.train_from:
-            tensorboard_log_dir += datetime.now().strftime("/%b-%d_%H-%M-%S")
+            tensorboard_log_dir = os.path.join(tensorboard_log_dir, opt.exp, datetime.now().strftime("%b-%d_%H-%M-%S"))
 
         writer = SummaryWriter(tensorboard_log_dir,
                                comment="Unmt")

@@ -10,7 +10,7 @@ from copy import deepcopy
 
 
 def build_model_saver(model_opt, opt, model, fields, optim):
-    model_saver = ModelSaver(os.path.join(opt.save_model, datetime.now().strftime("%b-%d_%H-%M-%S")),
+    model_saver = ModelSaver(os.path.join(opt.save_model, opt.exp, datetime.now().strftime("%b-%d_%H-%M-%S")),
                              model,
                              model_opt,
                              fields,
