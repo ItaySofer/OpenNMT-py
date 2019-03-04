@@ -22,11 +22,13 @@ from onmt.modules.copy_generator import collapse_copy_scores
 
 def build_translator(opt, report_score=True, logger=None, out_file=None):
     if out_file is None:
-        output_path = os.path.join(opt.output, datetime.now().strftime("%b-%d_%H-%M-%S"))
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
-        file_name = 'pred.txt'
-        out_file = codecs.open(os.path.join(output_path, file_name), 'w+', 'utf-8')
+        out_files = {}
+        for level in opt.levels:
+            output_path = os.path.join(opt.output, datetime.now().strftime("%b-%d_%H-%M-%S"))
+            if not os.path.exists(output_path):
+                os.makedirs(output_path)
+            file_name = 'pred.' + str(level) + '.txt'
+            out_files[level] = codecs.open(os.path.join(output_path, file_name), 'w+', 'utf-8')
 
     load_test_model = onmt.decoders.ensemble.load_test_model \
         if len(opt.models) > 1 else onmt.model_builder.load_test_model
@@ -40,7 +42,7 @@ def build_translator(opt, report_score=True, logger=None, out_file=None):
         opt,
         model_opt,
         global_scorer=scorer,
-        out_file=out_file,
+        out_files=out_files,
         report_score=report_score,
         logger=logger
     )
@@ -84,6 +86,7 @@ class Translator(object):
         global_scorer (onmt.translate.GNMTGlobalScorer): Translation
             scoring/reranking object.
         out_file (TextIO or codecs.StreamReaderWriter): Output file.
+        out_files (TextIO or codecs.StreamReaderWriter): Output files for multiple levels.
         report_score (bool) : Whether to report scores
         logger (logging.Logger or NoneType): Logger.
     """
@@ -116,6 +119,7 @@ class Translator(object):
             copy_attn=False,
             global_scorer=None,
             out_file=None,
+            out_files=None,
             report_score=True,
             logger=None,
             seed=-1):
@@ -170,6 +174,7 @@ class Translator(object):
             raise ValueError(
                 "Coverage penalty requires an attentional decoder.")
         self.out_file = out_file
+        self.out_files = out_files
         self.report_score = report_score
         self.logger = logger
 
@@ -197,6 +202,7 @@ class Translator(object):
             model_opt,
             global_scorer=None,
             out_file=None,
+            out_files=None,
             report_score=True,
             logger=None):
         """Alternate constructor.
@@ -211,6 +217,8 @@ class Translator(object):
             global_scorer (onmt.translate.GNMTGlobalScorer): See
                 :func:`__init__()`..
             out_file (TextIO or codecs.StreamReaderWriter): See
+                :func:`__init__()`.
+            out_files (TextIO or codecs.StreamReaderWriter): See
                 :func:`__init__()`.
             report_score (bool) : See :func:`__init__()`.
             logger (logging.Logger or NoneType): See :func:`__init__()`.
@@ -245,6 +253,7 @@ class Translator(object):
             copy_attn=model_opt.copy_attn,
             global_scorer=global_scorer,
             out_file=out_file,
+            out_files=out_files,
             report_score=report_score,
             logger=logger,
             seed=opt.seed)
@@ -295,6 +304,8 @@ class Translator(object):
 
         if batch_size is None:
             raise ValueError("batch_size must be set")
+
+        self.out_file = self.out_files[level]
 
         data = inputters.MultiLevelDataset(
             self.fields,
