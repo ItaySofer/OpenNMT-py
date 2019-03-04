@@ -547,8 +547,8 @@ class DatasetLazyIter(object):
 
     def _iter_dataset(self, path):
         cur_dataset = torch.load(path)
-        logger.info('Loading dataset from %s, number of examples: %d' %
-                    (path, len(cur_dataset)))
+        # logger.info('Loading dataset from %s, number of examples: %d' %
+        #             (path, len(cur_dataset)))
         cur_dataset.fields = self.fields
         cur_iter = OrderedIterator(
             dataset=cur_dataset,
