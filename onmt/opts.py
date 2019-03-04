@@ -668,6 +668,8 @@ def translate_opts(parser):
     group.add('--n_best', '-n_best', type=int, default=1,
               help="If verbose is set, will output the n_best "
                    "decoded sentences")
+    group.add('--exp', '-exp', type=str, default="",
+              help="Name of the experiment for logging.")
 
     group = parser.add_argument_group('Efficiency')
     group.add('--batch_size', '-batch_size', type=int, default=30,
