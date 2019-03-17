@@ -149,7 +149,7 @@ class ReportMgr(ReportMgrBase):
             self.maybe_log_tensorboard(train_stats,
                                        "train",
                                        lr,
-                                       step)
+                                       self.progress_step)
 
         if valid_stats is not None:
             self.log('Validation perplexity: %g' % valid_stats.ppl())
@@ -158,4 +158,4 @@ class ReportMgr(ReportMgrBase):
             self.maybe_log_tensorboard(valid_stats,
                                        "valid",
                                        lr,
-                                       step)
+                                       self.progress_step)
