@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 
+from datetime import datetime
+
 from onmt.utils.logging import init_logger
 from onmt.utils.misc import read_lines, concate_level
 from onmt.translate.translator import build_translator
@@ -47,4 +49,5 @@ if __name__ == "__main__":
     parser = _get_parser()
 
     opt = parser.parse_args()
+    setattr(opt, 'datetime', datetime.now().strftime("%b-%d_%H-%M-%S"))
     main(opt)

@@ -5,7 +5,6 @@ import codecs
 import os
 import math
 import time
-from datetime import datetime
 from itertools import count
 
 import torch
@@ -24,7 +23,7 @@ def build_translator(opt, report_score=True, logger=None, out_file=None):
     if out_file is None:
         out_files = {}
         for level in opt.levels:
-            output_path = os.path.join(opt.output, opt.exp, datetime.now().strftime("%b-%d_%H-%M-%S"))
+            output_path = os.path.join(opt.output, opt.exp, opt.datetime)
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
             file_name = 'pred.' + str(level) + '.txt'

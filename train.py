@@ -2,6 +2,7 @@
 """Train models."""
 import os
 import signal
+from datetime import datetime
 import torch
 
 import onmt.opts as opts
@@ -107,4 +108,5 @@ if __name__ == "__main__":
     parser = _get_parser()
 
     opt = parser.parse_args()
+    setattr(opt, 'datetime', datetime.now().strftime("%b-%d_%H-%M-%S"))
     main(opt)
