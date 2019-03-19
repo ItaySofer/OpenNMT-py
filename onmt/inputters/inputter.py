@@ -593,6 +593,60 @@ class DatasetLazyIter(object):
                         return
 
 
+class DatasetLazyMixerIter(object):
+    """Yield data from sharded dataset files in a mixed way, batch from each shard.
+
+    Args:
+        dataset_paths: a list containing the locations of dataset files.
+        fields (dict[str, Field]): fields dict for the
+            datasets.
+        batch_size (int): batch size.
+        batch_size_fn: custom batch process function.
+        device: See :class:`OrderedIterator` ``device``.
+        is_train (bool): train or valid?
+    """
+
+    def __init__(self, dataset_paths, fields, batch_size, batch_size_fn,
+                 batch_size_multiple, device, is_train, repeat=True,
+                 num_batches_multiple=1):
+        self._paths = dataset_paths
+        self.fields = fields
+        self.batch_size = batch_size
+        self.batch_size_fn = batch_size_fn
+        self.batch_size_multiple = batch_size_multiple
+        self.device = device
+        self.is_train = is_train
+        self.repeat = repeat
+        self.num_batches_multiple = num_batches_multiple
+
+    def _load_iterator(self, path, repeat):
+        dataset = torch.load(path)
+        # logger.info('Loading dataset from %s, number of examples: %d' %
+        #             (path, len(cur_dataset)))
+        dataset.fields = self.fields
+        cur_iter = OrderedIterator(
+            dataset=dataset,
+            batch_size=self.batch_size,
+            batch_size_multiple=self.batch_size_multiple,
+            batch_size_fn=self.batch_size_fn,
+            device=self.device,
+            train=self.is_train,
+            sort=False,
+            sort_within_batch=True,
+            repeat=repeat
+        )
+
+        return iter(cur_iter)
+
+    def __iter__(self):
+        paths = self._paths
+        iterators = [self._load_iterator(path, self.repeat) for path in paths]
+        cycle_iterators = cycle(iterators)
+        for iterator in cycle_iterators:
+            batch = next(iterator)
+            yield batch
+
+
 def max_tok_len(new, count, sofar):
     """
     In token batching scheme, the number of sequences is limited
@@ -630,7 +684,17 @@ def build_dataset_iter(corpus_type, fields, opt, is_train=True):
 
     device = "cuda" if opt.gpu_ranks else "cpu"
 
-    return DatasetLazyIter(
+    return DatasetLazyMixerIter(
+        dataset_paths,
+        fields,
+        batch_size,
+        batch_fn,
+        batch_size_multiple,
+        device,
+        is_train,
+        repeat=not opt.single_pass,
+        num_batches_multiple=opt.accum_count * opt.world_size) \
+        if is_train else DatasetLazyIter(
         dataset_paths,
         fields,
         batch_size,
