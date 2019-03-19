@@ -18,6 +18,8 @@ def main(opt):
     ArgumentParser.update_model_opts(opt)
     ArgumentParser.validate_model_opts(opt)
 
+    log_opt(opt)
+
     nb_gpu = len(opt.gpu_ranks)
 
     if opt.world_size > 1:
@@ -40,6 +42,13 @@ def main(opt):
         single_main(opt, 0)
     else:   # case only CPU
         single_main(opt, -1)
+
+
+def log_opt(opt):
+    args_file_name = os.path.join(opt.tensorboard_log_dir, opt.exp, opt.datetime, 'args.txt')
+    os.makedirs(os.path.dirname(args_file_name), exist_ok=True)
+    with open(args_file_name, "w+") as f:
+        f.write(str(vars(opt)))
 
 
 def run(opt, device_id, error_queue):
