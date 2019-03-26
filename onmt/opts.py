@@ -587,7 +587,7 @@ def translate_opts(parser):
                    "call tools/sari.py on command line")
     group.add('--report_flesch', '-report_flesch', action='store_true',
               help="Report Flesch-Kincaid grade level after translation, "
-                   "call tools/flesch/flesch.py on command line")
+                   "call tools/readability/readability.py on command line")
     group.add('--report_time', '-report_time', action='store_true',
               help="Report some translation time metrics")
 
