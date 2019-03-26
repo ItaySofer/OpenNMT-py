@@ -896,7 +896,7 @@ class Translator(object):
         print()
 
         res = subprocess.check_output(
-            "python %s/tools/readability/readability.py" % base_dir,
+            "python %s/tools/readability/readability.py \"Flesch-Kincaid Grade Level\"" % base_dir,
             stdin=self.out_file, shell=True
         ).decode("utf-8")
 

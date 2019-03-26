@@ -92,19 +92,23 @@ class Readability:
         return score
         
 
-def main():
-    flesch_grade_sum = 0
+def main(argv):
+    metric_name = argv[0]
+    metric_sum = 0
     lines = [line for line in [line.strip() for line in sys.stdin] if len(line) > 0]
     for line in lines:
         rd = Readability(line)
-        flesch_grade_sum += rd.FleschKincaidGradeLevel()
+        if metric_name == "Flesch-Kincaid Grade Level":
+            metric_sum += rd.FleschKincaidGradeLevel()
+        else:
+            raise ValueError("Metric name " + metric_name + "is not supported")
 
-    flesch_grade_avg = flesch_grade_sum / len(lines)
-    print("Average Flesch-Kincaid Grade Level = %f" % flesch_grade_avg)
+    metric_avg = metric_sum / len(lines)
+    print(metric_name + " = %f" % metric_avg)
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
 
 
 
