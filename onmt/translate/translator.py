@@ -113,7 +113,7 @@ class Translator(object):
             report_bleu=False,
             report_rouge=False,
             report_sari=False,
-            report_flesch=False,
+            report_flesch_kincaid_grade_level=False,
             report_time=False,
             copy_attn=False,
             global_scorer=None,
@@ -162,7 +162,7 @@ class Translator(object):
         self.report_bleu = report_bleu
         self.report_rouge = report_rouge
         self.report_sari = report_sari
-        self.report_flesch = report_flesch
+        self.report_flesch_kincaid_grade_level = report_flesch_kincaid_grade_level
         self.report_time = report_time
 
         self.copy_attn = copy_attn
@@ -409,8 +409,8 @@ class Translator(object):
                 if self.report_sari:
                     msg = self._report_sari(src, tgt)
                     self._log(msg)
-                if self.report_flesch:
-                    msg = self._report_flesch()
+                if self.report_flesch_kincaid_grade_level:
+                    msg = self._report_flesch_kincaid_grade_level()
                     self._log(msg)
 
         if self.report_time:
@@ -888,7 +888,7 @@ class Translator(object):
         msg = ">> " + res.strip()
         return msg
 
-    def _report_flesch(self):
+    def _report_flesch_kincaid_grade_level(self):
         import subprocess
         base_dir = os.path.abspath(__file__ + "/../../..")
         # Rollback pointer to the beginning.
