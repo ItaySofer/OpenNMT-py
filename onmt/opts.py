@@ -391,6 +391,8 @@ def train_opts(parser):
     group = parser.add_argument_group('Optimization- Type')
     group.add('--batch_size', '-batch_size', type=int, default=64,
               help='Maximum batch size for training')
+    group.add('--fixed_shard_batches', '-fixed_shard_batches', type=int, default=10,
+              help='Number of batches from fixed shard, before moving to the next. Used only in DatasetLazyMixerIter.')
     group.add('--batch_type', '-batch_type', default='sents',
               choices=["sents", "tokens"],
               help="Batch grouping for batch_size. Standard "

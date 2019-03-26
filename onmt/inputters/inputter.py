@@ -602,18 +602,20 @@ class DatasetLazyMixerIter(object):
             datasets.
         batch_size (int): batch size.
         batch_size_fn: custom batch process function.
+        fixed_shard_batches: number of batches from fixed shard, before moving to the next
         device: See :class:`OrderedIterator` ``device``.
         is_train (bool): train or valid?
     """
 
     def __init__(self, dataset_paths, fields, batch_size, batch_size_fn,
-                 batch_size_multiple, device, is_train, repeat=True,
+                 batch_size_multiple, fixed_shard_batches, device, is_train, repeat=True,
                  num_batches_multiple=1):
         self._paths = dataset_paths
         self.fields = fields
         self.batch_size = batch_size
         self.batch_size_fn = batch_size_fn
         self.batch_size_multiple = batch_size_multiple
+        self.fixed_shard_batches = fixed_shard_batches
         self.device = device
         self.is_train = is_train
         self.repeat = repeat
@@ -643,8 +645,9 @@ class DatasetLazyMixerIter(object):
         iterators = [self._load_iterator(path, self.repeat) for path in paths]
         cycle_iterators = cycle(iterators)
         for iterator in cycle_iterators:
-            batch = next(iterator)
-            yield batch
+            for _ in range(self.fixed_shard_batches):
+                batch = next(iterator)
+                yield batch
 
 
 def max_tok_len(new, count, sofar):
@@ -690,6 +693,7 @@ def build_dataset_iter(corpus_type, fields, opt, is_train=True):
         batch_size,
         batch_fn,
         batch_size_multiple,
+        opt.fixed_shard_batches,
         device,
         is_train,
         repeat=not opt.single_pass,
