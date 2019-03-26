@@ -184,7 +184,7 @@ def main(src_path, tgt_path):
         sari_sum += SARIsent(src, system_output, [tgt])
 
     sari_avg = sari_sum / len(system_output_sentences)
-    print("Average SARI = %f" % sari_avg)
+    print("SARI = %f" % sari_avg)
 
 
 if __name__ == '__main__':
