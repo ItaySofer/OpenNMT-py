@@ -247,7 +247,7 @@ class Translator(object):
             report_bleu=opt.report_bleu,
             report_rouge=opt.report_rouge,
             report_sari=opt.report_sari,
-            report_flesch=opt.report_flesch,
+            report_flesch_kincaid_grade_level=opt.report_flesch_kincaid_grade_level,
             report_time=opt.report_time,
             copy_attn=model_opt.copy_attn,
             global_scorer=global_scorer,
