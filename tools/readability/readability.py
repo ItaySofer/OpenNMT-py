@@ -100,6 +100,8 @@ def main(argv):
         rd = Readability(line)
         if metric_name == "Flesch-Kincaid Grade Level":
             metric_sum += rd.FleschKincaidGradeLevel()
+        elif metric_name == "Flesch Reading Ease":
+            metric_sum += rd.FleschReadingEase()
         else:
             raise ValueError("Metric name " + metric_name + "is not supported")
 

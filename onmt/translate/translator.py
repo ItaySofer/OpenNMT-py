@@ -113,6 +113,7 @@ class Translator(object):
             report_bleu=False,
             report_rouge=False,
             report_sari=False,
+            report_flesch_reading_ease=False,
             report_flesch_kincaid_grade_level=False,
             report_time=False,
             copy_attn=False,
@@ -162,6 +163,7 @@ class Translator(object):
         self.report_bleu = report_bleu
         self.report_rouge = report_rouge
         self.report_sari = report_sari
+        self.report_flesch_reading_ease = report_flesch_reading_ease
         self.report_flesch_kincaid_grade_level = report_flesch_kincaid_grade_level
         self.report_time = report_time
 
@@ -247,6 +249,7 @@ class Translator(object):
             report_bleu=opt.report_bleu,
             report_rouge=opt.report_rouge,
             report_sari=opt.report_sari,
+            report_flesch_reading_ease=opt.report_flesch_reading_ease,
             report_flesch_kincaid_grade_level=opt.report_flesch_kincaid_grade_level,
             report_time=opt.report_time,
             copy_attn=model_opt.copy_attn,
@@ -408,6 +411,9 @@ class Translator(object):
                     self._log(msg)
                 if self.report_sari:
                     msg = self._report_sari(src, tgt)
+                    self._log(msg)
+                if self.report_flesch_reading_ease:
+                    msg = self._report_flesch_reading_ease()
                     self._log(msg)
                 if self.report_flesch_kincaid_grade_level:
                     msg = self._report_flesch_kincaid_grade_level()
@@ -882,6 +888,21 @@ class Translator(object):
 
         res = subprocess.check_output(
             "python %s/tools/sari.py %s %s" % (base_dir, os.path.abspath(src_path), os.path.abspath(tgt_path)),
+            stdin=self.out_file, shell=True
+        ).decode("utf-8")
+
+        msg = ">> " + res.strip()
+        return msg
+
+    def _report_flesch_reading_ease(self):
+        import subprocess
+        base_dir = os.path.abspath(__file__ + "/../../..")
+        # Rollback pointer to the beginning.
+        self.out_file.seek(0)
+        print()
+
+        res = subprocess.check_output(
+            "python %s/tools/readability/readability.py \"Flesch Reading Ease\"" % base_dir,
             stdin=self.out_file, shell=True
         ).decode("utf-8")
 
