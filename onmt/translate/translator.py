@@ -27,7 +27,7 @@ def build_translator(opt, report_score=True, logger=None, out_file=None):
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
             file_name = 'pred.' + str(level) + '.txt'
-            out_files[level] = codecs.open(os.path.join(output_path, file_name), 'w+', 'utf-8')
+            out_files[level] = open(os.path.join(output_path, file_name), mode='w+', encoding='utf-8')
 
     load_test_model = onmt.decoders.ensemble.load_test_model \
         if len(opt.models) > 1 else onmt.model_builder.load_test_model

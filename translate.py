@@ -3,10 +3,12 @@
 
 from __future__ import unicode_literals
 
+import json
+import os
 from datetime import datetime
 
 from onmt.utils.logging import init_logger
-from onmt.utils.misc import read_lines, concate_level
+from onmt.utils.misc import read_lines_string, concate_level
 from onmt.translate.translator import build_translator
 
 import onmt.opts as opts
@@ -33,6 +35,37 @@ def main(opt):
             batch_size=opt.batch_size,
             attn_debug=opt.attn_debug
             )
+
+    postprocess(opt, translator.out_files)
+
+
+def postprocess(opt, out_files):
+    unified_translations = {}
+    for level in opt.levels:
+        src_lines = read_lines_string(concate_level(opt.src, level))
+        tgt_lines = read_lines_string(concate_level(opt.tgt, level))
+        pred_lines = get_pred_lines(out_files[level])
+
+        for (src_line, tgt_line, pred_line) in zip(src_lines, tgt_lines, pred_lines):
+            level_pred_dict = {level: {'tgt': tgt_line, 'pred': pred_line}}
+            unified_translations.setdefault(src_line, {}).update(level_pred_dict)
+
+    unified_translations_sorted = dict(sorted(unified_translations.items(), key=lambda kv: len(kv[1]), reverse=True))  # sort by number of levels for source sentence
+
+    write_to_file(opt, unified_translations_sorted)
+
+
+def get_pred_lines(pred_file):
+    pred_file.seek(0)
+    pred_lines = pred_file.readlines()
+    return pred_lines
+
+
+def write_to_file(opt, unified_translations_sorted):
+    output_path = os.path.join(opt.output, opt.exp, opt.datetime)
+    file_name = 'pred.unified.txt'
+    out_file = open(os.path.join(output_path, file_name), mode='w+', encoding='utf-8')
+    out_file.write(json.dumps(unified_translations_sorted))
 
 
 def _get_parser():

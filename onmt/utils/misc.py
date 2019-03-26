@@ -11,6 +11,11 @@ def read_lines(path):
         return f.readlines()
 
 
+def read_lines_string(path):
+    with open(path, "r") as f:
+        return f.readlines()
+
+
 def split_corpus(path, shard_size):
     with open(path, "rb") as f:
         if shard_size <= 0:
