@@ -208,8 +208,9 @@ def preprocess_opts(parser):
     group.add_argument('-tgt', '--tgt',
                        required=True,
                        help='Target data file path (without .#level suffix)')
-    group.add_argument('-train_valid_split', '--train_valid_split',
-                       default=0.7,
+    group.add_argument('-train_valid_test_split', '--train_valid_test_split',
+                       default=[0.8, 0.1, 0.1],
+                       nargs='+',
                        type=float,
                        help='Percentage of split between train / validation data ~ [0.0, 1.0]')
 

@@ -20,6 +20,7 @@ from onmt.utils.parse import ArgumentParser
 
 train_prefix = "train."
 valid_prefix = "valid."
+test_prefix = "test."
 
 
 def check_existing_pt_files(opt):
@@ -39,8 +40,12 @@ def append_prefix(side_file_path, prefix):
     return os.path.join(head, tail)
 
 
-def split_train_valid(opt):
-    train_percent = opt.train_valid_split
+def split_train_valid_test(opt):
+    train_valid_test_percent = opt.train_valid_test_split
+    assert(sum(train_valid_test_percent) == 1.0)
+
+    train_valid_test_sent_count = {"train": 0, "valid": 0, "test": 0}
+
     for level in opt.levels:
         src_file_path = concate_level(opt.src, level)
         tgt_file_path = concate_level(opt.tgt, level)
@@ -48,7 +53,13 @@ def split_train_valid(opt):
         tgt_lines = read_lines(tgt_file_path)
         assert len(src_lines) == len(tgt_lines)
 
-        train_size = int(train_percent * len(src_lines))
+        train_size = int(train_valid_test_percent[0] * len(src_lines))
+        valid_size = int(train_valid_test_percent[1] * len(src_lines))
+        test_size = int(train_valid_test_percent[2] * len(src_lines))
+
+        train_valid_test_sent_count["train"] = train_valid_test_sent_count["train"] + train_size
+        train_valid_test_sent_count["valid"] = train_valid_test_sent_count["valid"] + valid_size
+        train_valid_test_sent_count["test"] = train_valid_test_sent_count["test"] + test_size
 
         for (side_file_path, lines) \
                 in zip([src_file_path, tgt_file_path],
@@ -60,8 +71,15 @@ def split_train_valid(opt):
 
             valid_path = append_prefix(side_file_path, valid_prefix)
             valid_file = open(valid_path, "wb")
-            valid_file.writelines(lines[train_size:])
+            valid_file.writelines(lines[train_size: train_size + valid_size])
             valid_file.close()
+
+            test_path = append_prefix(side_file_path, test_prefix)
+            test_file = open(test_path, "wb")
+            test_file.writelines(lines[train_size + valid_size:])
+            test_file.close()
+
+    print("number of sentences: " + str(train_valid_test_sent_count))
 
 
 def build_save_dataset(corpus_type, fields, src_reader, tgt_reader, opt):
@@ -145,7 +163,7 @@ def main(opt):
     init_logger(opt.log_file)
     logger.info("Extracting features...")
 
-    split_train_valid(opt)
+    split_train_valid_test(opt)
 
     src_nfeats = count_features(concate_level(opt.src, opt.levels[0])) if opt.data_type == 'text' \
         else 0
