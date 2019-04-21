@@ -701,6 +701,31 @@ def translate_opts(parser):
                    "model faster and smaller")
 
 
+def evaluate_opts(parser):
+    """ Evaluation options """
+
+    group = parser.add_argument_group('Data')
+
+    group.add('--src', '-src', required=True,
+              help="Source sequence to decode (one line per "
+                   "sequence)")
+    group.add('--tgt', '-tgt',
+              help='True target sequence')
+    group.add('--pred', '-pred',
+              help='Predicted sequence')
+    group.add('--report_bleu', '-report_bleu', action='store_true',
+              help="Report bleu score after translation, "
+                   "call tools/multi-bleu.perl on command line")
+    group.add('--report_sari', '-report_sari', action='store_true',
+              help="Report sari score after translation, "
+                   "call tools/sari.py on command line")
+    group.add('--report_flesch_reading_ease', '-report_flesch_reading_ease', action='store_true',
+              help="Report Flesch reading ease after translation, "
+                   "call tools/readability/readability.py on command line")
+    group.add('--report_flesch_kincaid_grade_level', '-report_flesch_kincaid_grade_level', action='store_true',
+              help="Report Flesch-Kincaid grade level after translation, "
+                   "call tools/readability/readability.py on command line")
+
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.

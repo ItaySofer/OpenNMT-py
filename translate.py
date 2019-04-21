@@ -40,11 +40,18 @@ def main(opt):
 
 
 def postprocess(opt, out_files):
+    src_unified = []
+    tgt_unified = []
+    pred_unified = []
     unified_translations = {}
     for level in opt.levels:
         src_lines = read_lines_string(concate_level(opt.src, level))
         tgt_lines = read_lines_string(concate_level(opt.tgt, level))
         pred_lines = get_pred_lines(out_files[level])
+
+        src_unified = src_unified + src_lines
+        tgt_unified = tgt_unified + tgt_lines
+        pred_unified = pred_unified + pred_lines
 
         for (src_line, tgt_line, pred_line) in zip(src_lines, tgt_lines, pred_lines):
             level_pred_dict = {level: {'tgt': tgt_line, 'pred': pred_line}}
@@ -52,7 +59,10 @@ def postprocess(opt, out_files):
 
     unified_translations_sorted = dict(sorted(unified_translations.items(), key=lambda kv: len(kv[1]), reverse=True))  # sort by number of levels for source sentence
 
-    write_to_file(opt, unified_translations_sorted)
+    write_to_file(opt, 'src_tgt_pred.unified.txt', json.dumps(unified_translations_sorted))
+    write_to_file(opt, 'src.unified.txt', "".join(src_unified))
+    write_to_file(opt, 'tgt.unified.txt', "".join(tgt_unified))
+    write_to_file(opt, 'pred.unified.txt', "".join(pred_unified))
 
 
 def get_pred_lines(pred_file):
@@ -61,11 +71,11 @@ def get_pred_lines(pred_file):
     return pred_lines
 
 
-def write_to_file(opt, unified_translations_sorted):
+def write_to_file(opt, file_name, output):
     output_path = os.path.join(opt.output, opt.exp, opt.datetime)
-    file_name = 'pred.unified.txt'
+    file_name = file_name
     out_file = open(os.path.join(output_path, file_name), mode='w+', encoding='utf-8')
-    out_file.write(json.dumps(unified_translations_sorted))
+    out_file.write(output)
 
 
 def _get_parser():
