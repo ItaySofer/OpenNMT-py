@@ -577,21 +577,6 @@ def translate_opts(parser):
     group.add('--output', '-output', default='./output/translations',
               help="Path to output the predictions (each line will "
                    "be the decoded sequence")
-    group.add('--report_bleu', '-report_bleu', action='store_true',
-              help="Report bleu score after translation, "
-                   "call tools/multi-bleu.perl on command line")
-    group.add('--report_rouge', '-report_rouge', action='store_true',
-              help="Report rouge 1/2/3/L/SU4 score after translation "
-                   "call tools/test_rouge.py on command line")
-    group.add('--report_sari', '-report_sari', action='store_true',
-              help="Report sari score after translation, "
-                   "call tools/sari.py on command line")
-    group.add('--report_flesch_reading_ease', '-report_flesch_reading_ease', action='store_true',
-              help="Report Flesch reading ease after translation, "
-                   "call tools/readability/readability.py on command line")
-    group.add('--report_flesch_kincaid_grade_level', '-report_flesch_kincaid_grade_level', action='store_true',
-              help="Report Flesch-Kincaid grade level after translation, "
-                   "call tools/readability/readability.py on command line")
     group.add('--report_time', '-report_time', action='store_true',
               help="Report some translation time metrics")
 
@@ -713,6 +698,9 @@ def evaluate_opts(parser):
               help='True target sequence')
     group.add('--pred', '-pred',
               help='Predicted sequence')
+    group.add('--report_rouge', '-report_rouge', action='store_true',
+              help="Report rouge 1/2/3/L/SU4 score after translation "
+                   "call tools/test_rouge.py on command line")
     group.add('--report_bleu', '-report_bleu', action='store_true',
               help="Report bleu score after translation, "
                    "call tools/multi-bleu.perl on command line")
@@ -725,7 +713,19 @@ def evaluate_opts(parser):
     group.add('--report_flesch_kincaid_grade_level', '-report_flesch_kincaid_grade_level', action='store_true',
               help="Report Flesch-Kincaid grade level after translation, "
                    "call tools/readability/readability.py on command line")
+    group.add('--output', '-output',
+              help="Path to output the predictions (each line will "
+                   "be the decoded sequence")
 
+    group = parser.add_argument_group('Logging')
+    group.add('--verbose', '-verbose', action="store_true",
+              help='Print scores and predictions for each sentence')
+    group.add('--log_file', '-log_file', type=str, default="",
+              help="Output logs to a file under this path.")
+    group.add('--log_file_level', '-log_file_level', type=str,
+              action=StoreLoggingLevelAction,
+              choices=StoreLoggingLevelAction.CHOICES,
+              default="0")
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.

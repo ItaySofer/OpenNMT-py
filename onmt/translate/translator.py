@@ -26,7 +26,7 @@ def build_translator(opt, report_score=True, logger=None, out_file=None):
             output_path = os.path.join(opt.output, opt.exp, opt.datetime)
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
-            file_name = 'pred.' + str(level) + '.txt'
+            file_name = 'pred.' + str(level)
             out_files[level] = open(os.path.join(output_path, file_name), mode='w+', encoding='utf-8')
 
     load_test_model = onmt.decoders.ensemble.load_test_model \
@@ -78,8 +78,6 @@ class Translator(object):
         replace_unk (bool): Replace unknown token.
         data_type (str): Source data type.
         verbose (bool): Print/log every translation.
-        report_bleu (bool): Print/log Bleu metric.
-        report_rouge (bool): Print/log Rouge metric.
         report_time (bool): Print/log total time/frequency.
         copy_attn (bool): Use copy attention.
         global_scorer (onmt.translate.GNMTGlobalScorer): Translation
@@ -110,11 +108,6 @@ class Translator(object):
             replace_unk=False,
             data_type="text",
             verbose=False,
-            report_bleu=False,
-            report_rouge=False,
-            report_sari=False,
-            report_flesch_reading_ease=False,
-            report_flesch_kincaid_grade_level=False,
             report_time=False,
             copy_attn=False,
             global_scorer=None,
@@ -160,11 +153,6 @@ class Translator(object):
                 "replace_unk requires an attentional decoder.")
         self.data_type = data_type
         self.verbose = verbose
-        self.report_bleu = report_bleu
-        self.report_rouge = report_rouge
-        self.report_sari = report_sari
-        self.report_flesch_reading_ease = report_flesch_reading_ease
-        self.report_flesch_kincaid_grade_level = report_flesch_kincaid_grade_level
         self.report_time = report_time
 
         self.copy_attn = copy_attn
@@ -246,11 +234,6 @@ class Translator(object):
             replace_unk=opt.replace_unk,
             data_type=opt.data_type,
             verbose=opt.verbose,
-            report_bleu=opt.report_bleu,
-            report_rouge=opt.report_rouge,
-            report_sari=opt.report_sari,
-            report_flesch_reading_ease=opt.report_flesch_reading_ease,
-            report_flesch_kincaid_grade_level=opt.report_flesch_kincaid_grade_level,
             report_time=opt.report_time,
             copy_attn=model_opt.copy_attn,
             global_scorer=global_scorer,
@@ -403,21 +386,6 @@ class Translator(object):
                 msg = self._report_score('GOLD', gold_score_total,
                                          gold_words_total)
                 self._log(msg)
-                if self.report_bleu:
-                    msg = self._report_bleu(tgt)
-                    self._log(msg)
-                if self.report_rouge:
-                    msg = self._report_rouge(tgt)
-                    self._log(msg)
-                if self.report_sari:
-                    msg = self._report_sari(src, tgt)
-                    self._log(msg)
-                if self.report_flesch_reading_ease:
-                    msg = self._report_flesch_reading_ease()
-                    self._log(msg)
-                if self.report_flesch_kincaid_grade_level:
-                    msg = self._report_flesch_kincaid_grade_level()
-                    self._log(msg)
 
         if self.report_time:
             total_time = end_time - start_time
@@ -855,71 +823,3 @@ class Translator(object):
                 name, math.exp(-score_total / words_total)))
         return msg
 
-    def _report_bleu(self, tgt_path):
-        import subprocess
-        base_dir = os.path.abspath(__file__ + "/../../..")
-        # Rollback pointer to the beginning.
-        self.out_file.seek(0)
-        print()
-
-        res = subprocess.check_output(
-            "perl %s/tools/multi-bleu.perl %s" % (base_dir, os.path.abspath(tgt_path)),
-            stdin=self.out_file, shell=True
-        ).decode("utf-8")
-
-        msg = ">> " + res.strip()
-        return msg
-
-    def _report_rouge(self, tgt_path):
-        import subprocess
-        path = os.path.split(os.path.realpath(__file__))[0]
-        msg = subprocess.check_output(
-            "python %s/tools/test_rouge.py -r %s -c STDIN" % (path, tgt_path),
-            shell=True, stdin=self.out_file
-        ).decode("utf-8").strip()
-        return msg
-
-    def _report_sari(self, src_path, tgt_path):
-        import subprocess
-        base_dir = os.path.abspath(__file__ + "/../../..")
-        # Rollback pointer to the beginning.
-        self.out_file.seek(0)
-        print()
-
-        res = subprocess.check_output(
-            "python %s/tools/sari.py %s %s" % (base_dir, os.path.abspath(src_path), os.path.abspath(tgt_path)),
-            stdin=self.out_file, shell=True
-        ).decode("utf-8")
-
-        msg = ">> " + res.strip()
-        return msg
-
-    def _report_flesch_reading_ease(self):
-        import subprocess
-        base_dir = os.path.abspath(__file__ + "/../../..")
-        # Rollback pointer to the beginning.
-        self.out_file.seek(0)
-        print()
-
-        res = subprocess.check_output(
-            "python %s/tools/readability/readability.py \"Flesch Reading Ease\"" % base_dir,
-            stdin=self.out_file, shell=True
-        ).decode("utf-8")
-
-        msg = ">> " + res.strip()
-        return msg
-
-    def _report_flesch_kincaid_grade_level(self):
-        import subprocess
-        base_dir = os.path.abspath(__file__ + "/../../..")
-        # Rollback pointer to the beginning.
-        self.out_file.seek(0)
-        print()
-
-        res = subprocess.check_output(
-            "python %s/tools/readability/readability.py \"Flesch-Kincaid Grade Level\"" % base_dir,
-            stdin=self.out_file, shell=True
-        ).decode("utf-8")
-
-        msg = ">> " + res.strip()
-        return msg
