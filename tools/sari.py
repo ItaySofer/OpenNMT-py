@@ -183,7 +183,7 @@ def main(src_path, tgt_path):
     for (system_output, src, tgt) in zip(system_output_sentences, src_sentences, tgt_sentences):
         sari_sum += SARIsent(src, system_output, [tgt])
 
-    sari_avg = sari_sum / len(system_output_sentences)
+    sari_avg = 100 * sari_sum / len(system_output_sentences)
     print("SARI = %f" % sari_avg)
 
 
