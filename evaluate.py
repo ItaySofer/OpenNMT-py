@@ -19,7 +19,7 @@ from onmt.utils.logging import init_logger
 def main(opt):
     logger = init_logger(opt.log_file)
 
-    evaluator = build_evaluator(opt)
+    evaluator = build_evaluator(opt, logger)
 
     for level in opt.levels:
         src_path = concate_level(opt.src, level)
