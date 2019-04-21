@@ -48,7 +48,7 @@ for entry in entries:
     src_file = files[tgt_level]['src_file']
     tgt_file = files[tgt_level]['tgt_file']
 
-    src_file.writelines(src_sent + '\n')
+    src_file.write(src_sent + '\n')
     tgt_file.write(tgt_sent + '\n')
 
     num_of_sent_per_tgt_level[tgt_level] = num_of_sent_per_tgt_level[tgt_level] + 1
