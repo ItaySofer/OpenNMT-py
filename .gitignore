@@ -1,12 +1,11 @@
 # repo-specific stuff
 pred.txt
 multi-bleu.perl
-*.pt
 \#*#
 .idea
 *.sublime-*
 .DS_Store
-data/
+data/text_simplification/Newsela
 output/
 
 # Byte-compiled / optimized / DLL files
